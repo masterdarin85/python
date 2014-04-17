@@ -1,0 +1,89 @@
+##
+## WELCOME TO MY PROJECT FOR DETECTING A NEW DEVICE PRESENT ON A DHCP NETWORK
+##
+## PURPOSE: TO SIMPLIFY THE TASK OF FINDING THE IP ADDRESS ISSUED TO A NEWLY PLUGGED-IN DEVICE ON A CROWDED DHCP NETWORK
+##
+## INSPIRED BY: MY WORK WITH THE RASPBERRY PI
+##
+##
+
+#!/usr/bin/python
+
+def getmyip():
+    import os
+    ipscrapestring = []
+    ipscrape = os.popen('ifconfig')
+    for a in ipscrape.readlines():
+        a = a.strip()
+        ipscrapestring.append(a)
+    ipscrapestring = ''.join(ipscrapestring)
+
+    ipscrape = ipscrapestring.replace(':', 'ddd ')
+    ipscrape = ''.join(ipscrape)
+    ipscrape = ipscrape.split()
+
+    myip =[]
+    for x in ipscrape:
+        if '.' in x and '255' not in x and '(' not in x and '127.0.0.1' not in x:
+            myip.append(x)
+    myip = myip[0]
+    return myip
+
+
+def nmaprobber1():
+    import os
+    ipscrape = []
+    ipinfo = getmyip()
+    ipchunk = ipinfo.rsplit('.',1)
+    qnap = ['nmap -sP ',ipinfo,'/24']
+    qnap = ''.join(qnap)
+        ipscraper1 = os.popen(qnap)
+    for a in ipscraper1.readlines():
+        a = a.strip()
+        ipscrape.append(a)
+    ipscrape2 = []
+    ipscrape = ''.join(ipscrape)
+    ipscrape = ipscrape.replace('Host is up ',' ')
+    ipscrape = ipscrape.split()  
+    for b in ipscrape:
+        if len(b) > 0:
+            if ipchunk[0] in b:
+                ipscrape2.append(b)
+    return ipscrape2
+    
+def nmaprobber():
+    raw_input("Welcome to NmapRobber - Please Make sure device is NOT plugged in and press any key")
+    loop = 4
+    dumplist = []
+    while loop > 0:
+        nmapinstance = nmaprobber1()
+
+        for ipnum in nmapinstance:
+            if ipnum not in dumplist:
+                dumplist.append(ipnum)
+            else:
+                pass
+        loop -= 1
+        print loop
+    raw_input('Now Please Plug in your device, wait 10-20 seconds then press any key')
+    suspectip = []
+    loop = 3
+    nmaplisty = []
+    while loop > 0:
+        nmapinstance = nmaprobber1()
+        print loop
+        for ipnum in nmapinstance:
+            if ipnum not in dumplist:
+                suspectip.append(ipnum)
+            else:
+                pass
+        loop -= 1
+    for x in suspectip:
+        if x not in nmaplisty:
+            nmaplisty.append(x)
+        else:
+            pass
+    return nmaplisty
+
+a = nmaprobber()
+print a
